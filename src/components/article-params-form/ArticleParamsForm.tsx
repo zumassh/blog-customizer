@@ -2,7 +2,7 @@ import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
 
 import styles from './ArticleParamsForm.module.scss';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Text } from 'src/ui/text';
 import clsx from 'clsx';
 import { Select } from 'src/ui/select';
@@ -26,7 +26,7 @@ export const ArticleParamsForm = ({
 	settings,
 	onChangeSettings,
 }: ArticleParamsFormProps) => {
-	const [open, setOpen] = useState<boolean>(false);
+	const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
 	const [fontFamily, setFontFamily] = useState(settings.fontFamilyOption);
 	const [fontSize, setFontSize] = useState(settings.fontSizeOption);
 	const [fontColor, setFontColor] = useState(settings.fontColor);
@@ -60,17 +60,37 @@ export const ArticleParamsForm = ({
 		});
 	};
 
+	const sidebarRef = useRef<HTMLElement>(null);
+
+	useEffect(() => {
+		if (!isFormOpen) {
+			return;
+		}
+
+		const handleClickOutside = (e: MouseEvent) => {
+			if (!sidebarRef.current?.contains(e.target as Node)) {
+				setIsFormOpen(false);
+			}
+		};
+		document.addEventListener('mousedown', handleClickOutside);
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [isFormOpen]);
+
 	return (
 		<>
 			<ArrowButton
-				isOpen={open}
+				isOpen={isFormOpen}
 				onClick={() => {
-					setOpen(!open);
+					setIsFormOpen(!isFormOpen);
 				}}
 			/>
 			<aside
+				ref={sidebarRef}
 				className={clsx(styles.container, {
-					[styles.container_open]: open,
+					[styles.container_open]: isFormOpen,
 				})}>
 				<form
 					className={styles.form}
